@@ -3,13 +3,14 @@ import Block from './block.model'
 import Transaction from './transaction.model'
 
 export default class Blockchain {
-  // debe consultar a todos los nodos para el consenso del siguiente bloque (el block hash con mayor cantidad de nodos que lo aceptaron).
+  // debe consultar a todos los nodos para el consenso del siguiente bloque
+  // (el block hash con mayor cantidad de nodos que lo aceptaron).
   // TODO type the data
   public chain: any
   public difficulty: any
   public pendingTransactions: any
   public miningReward: any
-
+  public version: any 
   /**
    * We create a constructor function that creates a genesis block, sets the difficulty to 2, creates an
    * empty array for pending transactions, and sets the mining reward to 100
@@ -19,6 +20,11 @@ export default class Blockchain {
     this.difficulty = 2
     this.pendingTransactions = []
     this.miningReward = 100
+    this.version = '1.0.0'
+  }
+
+  adjustDificulty(newDificulty: number): void {
+    this.difficulty = newDificulty
   }
 
   /**
@@ -45,17 +51,33 @@ export default class Blockchain {
    * the block and add it to the chain. Finally, we reset the pending transactions array
    * @param miningRewardAddress - The address to send the mining reward to.
    */
-  minePendingTransactions(miningRewardAddress): void {
+  minePendingTransactions = async (miningRewardAddress: any): Promise<void> => {
     const rewardTx = new Transaction(null, miningRewardAddress, this.miningReward)
     this.pendingTransactions.push(rewardTx)
 
     const block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash)
-    block.mineBlock(this.difficulty)
+    await block.mineBlock(this.difficulty)
 
     console.log('Block successfully mined!')
-    this.chain.push(block)
+    this.addBlock(block)
+  }
 
-    this.pendingTransactions = []
+  /**
+   * If the mined block has valid transactions,
+   * and it creates a valid chain, we add the new block.
+   *
+   * @param block - The new block to be added containing all the transactions.
+   */
+  addBlock = (block: any): void => {
+    this.chain.push(block)
+      console.log('NEW BLOCK ADDED',this.chain)
+      if (!this.isChainValid() || !block.hasValidTransactions()) {
+        this.chain.pop(block)
+        console.log('NEW BLOCK REMOVED',this.chain)
+        throw new Error('The new block is not a valid Block')
+      } else {
+       this.pendingTransactions = []
+    }
   }
 
   /**
@@ -102,6 +124,8 @@ export default class Blockchain {
 
     this.pendingTransactions.push(transaction)
     console.log('transaction added: %s', transaction)
+    // Make sure to add the transactions in order to avoid double-expending.
+    this.pendingTransactions.sort((t1: any, t2: any) => t1.timestamp - t2.timestamp)
   }
 
   /**
@@ -173,7 +197,10 @@ export default class Blockchain {
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i]
       const previousBlock = this.chain[i - 1]
-
+      const wrongPreviousHash = previousBlock.hash !== currentBlock.previousHash
+      const wrongBlockTransactions = !currentBlock.hasValidTransactions()
+      const wrongCurrentHash = currentBlock.hash !== currentBlock.calculateHash()
+      console.log('CHECKING ALL PAST TRANSACTIONS HASHES')
       console.table([
         previousBlock.hash,
         currentBlock.previousHash,
@@ -184,15 +211,7 @@ export default class Blockchain {
         currentBlock.calculateHash()
       ])
 
-      if (previousBlock.hash !== currentBlock.previousHash) {
-        return false
-      }
-
-      if (!currentBlock.hasValidTransactions()) {
-        return false
-      }
-
-      if (currentBlock.hash !== currentBlock.calculateHash()) {
+      if (wrongPreviousHash || wrongBlockTransactions || wrongCurrentHash) {
         return false
       }
     }

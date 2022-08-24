@@ -13,8 +13,8 @@
 
     <div class="container">
       <h2>Implementando Websockets con Node.js</h2>
-      <div class="row mt-4">
-        <div class="col-sm-6">
+      <div class="flex flex-col mx-5 space-evenly">
+        <div class="flex flex-col my-3">
           <label class="form-label">Mensajes del servidor</label>
           <textarea
             id="mensajes"
@@ -23,7 +23,7 @@
             class="form-control"
           ></textarea>
         </div>
-        <div class="col-sm-5">
+        <div class="flex flex-col my-3">
           <form onsubmit="enviarTexto(event)">
             <label class="form-label">Texto a enviar</label>
             <input type="text" id="texto" name="texto" class="form-control" />
@@ -31,6 +31,17 @@
               Enviar
             </button>
           </form>
+        </div>
+        <div class="flex flex-col my-2 mw-75 border border-danger">
+          <h5 class="form-label"><strong>WALLET</strong> </h5>
+            <div  class="mb-2">
+              <h6><strong>- publicKey:</strong></h6>
+              <div id="public-key" class="text-break"></div>
+            </div>
+            <div>
+              <h6><stong>- privateKey:</stong></h6>
+              <div id="private-key" class="text-break"></div>
+            </div>
         </div>
       </div>
     </div>

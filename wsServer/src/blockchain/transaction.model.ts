@@ -52,7 +52,7 @@ export default class Transaction {
    * It signs the transaction with the private key of the sender.
    * @param signingKey - The private key of the wallet that is sending the transaction.
    */
-  signTransaction(signingKey): void {
+  signTransaction(signingKey:any): void {
     // You can only send a transaction from the wallet that is linked to your
     // key. So here we check if the fromAddress matches your publicKey
     if (signingKey.getPublic('hex') !== this.fromAddress) {
@@ -77,6 +77,8 @@ export default class Transaction {
     // If the transaction doesn't have a from address we assume it's a
     // mining reward and that it's valid. You could verify this in a
     // different way (special field for instance)
+  
+    // This is a reward transaction and we don't need to verify it.
     if (this.fromAddress === null) return true
 
     if (!this.signature || this.signature.length === 0) {

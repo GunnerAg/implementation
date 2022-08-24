@@ -1,23 +1,21 @@
 // import Block from './interfaces'
 import crypto from 'crypto'
+import { Transaction } from '../interfaces'
 
 export default class Block {
-  // timestamp – the time when the block was mined.
-  // blockNumber – the length of the blockchain in blocks.
-  // baseFeePerGas - the minimum fee per gas required for a transaction to be included in the block.
-  // difficulty – the effort required to mine the block.
-  // mixHash – a unique identifier for that block.
-  // parentHash – the unique identifier for the block that came before (this is how blocks are linked in a chain).
-  // transactions – the transactions included in the block.
-  // stateRoot – the entire state of the system: account balances, contract storage, contract code and account nonces are inside.
-  // nonce – a hash that, when combined with the mixHash, proves that the block has gone through proof-of-work.
+  // rootHash (Merkel root).✅
+  // previousHash.✅
+  // timeStamp. ✅
+  // nonce. ✅
+  // version. ✅
 
   // TODO: type the data
-  public previousHash: any
-  public timestamp: any
-  public transactions: any
-  public nonce: any
-  public hash: any
+  public previousHash: string
+  public timestamp: number
+  public transactions: [Transaction]
+  public nonce: number
+  public hash: string
+  public version: string
 
   /**
    * The constructor function is used to create a new block object
@@ -25,7 +23,8 @@ export default class Block {
    * @param transactions - This is an array of transactions that are included in this block.
    * @param [previousHash] - The hash of the previous block in the chain.
    */
-  constructor(timestamp:any, transactions:any, previousHash = '') {
+  constructor(timestamp: number, transactions: [Transaction], previousHash = '', version?:string) {
+    this.version = version || '1.0.0'
     this.previousHash = previousHash
     this.timestamp = timestamp
     this.transactions = transactions
@@ -33,15 +32,39 @@ export default class Block {
     this.hash = this.calculateHash()
   }
 
+  // /**
+  //  * It takes the previous hash, the timestamp, the transactions, and the nonce, and then creates a
+  //  * hash of all of that
+  //  * @returns The hash of the block
+  //  */
+  // calculateHash(): any {
+  //   return crypto
+  //     .createHash('sha256')
+  //     .update(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce)
+  //     .digest('hex')
+  // }
+
   /**
    * It takes the previous hash, the timestamp, the transactions, and the nonce, and then creates a
    * hash of all of that
    * @returns The hash of the block
    */
-  calculateHash(): any {
+  calculateHashTransactions(): string {
     return crypto
       .createHash('sha256')
-      .update(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce)
+      .update(this.timestamp + this.version + JSON.stringify(this.transactions))
+      .digest('hex')
+  }
+
+  /**
+   * It takes the previous hash, the timestamp, the transactions, and the nonce, and then creates a
+   * hash of all of that
+   * @returns The hash of the block
+   */
+  calculateHash(): string {
+    return crypto
+      .createHash('sha256')
+      .update(this.previousHash + this.version + this.calculateHashTransactions() + this.nonce)
       .digest('hex')
   }
 
@@ -50,7 +73,7 @@ export default class Block {
    * recalculate the hash
    * @param difficulty - The number of leading zeros that the hash must have.
    */
-  mineBlock(difficulty:any):void {
+  async mineBlock(difficulty: any): Promise<void> {
     while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join('0')) {
       this.nonce++
       this.hash = this.calculateHash()
@@ -63,7 +86,7 @@ export default class Block {
    * If any of the transactions in the block are invalid, return false, otherwise return true.
    * @returns A boolean value.
    */
-  hasValidTransactions():boolean {
+  hasValidTransactions(): boolean {
     for (const tx of this.transactions) {
       if (!tx.isValid()) {
         return false
