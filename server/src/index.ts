@@ -14,27 +14,22 @@ const chain = new Blockchain()
 wss.on('connection', async ws => {
   const id = uuidv4()
   const { publicKey, privateKey } = await generateKeys()
-  const data = { id, publicKey, privateKey, balance: chain.getBalanceOfAddress(publicKey) }
-  const _data = []
-  clients.set(ws, data)
-
+  const privateData = { id, publicKey, privateKey, balance: chain.getBalanceOfAddress(publicKey) }
+  const publicData = []
+  clients.set(ws, privateData)
   console.log('NEW CONNECTION, TOTAL CONNECTED PEERS: ', [...clients.keys()].length)
-  ws.send(JSON.stringify({ type: 'CONNECTED', data }));
+  ws.send(JSON.stringify({ type: 'CONNECTED', privateData }));
 
   [...clients.keys()].forEach(client => {
     const peer = clients.get(client)
     const clone = JSON.parse(JSON.stringify(peer))
     delete clone.privateKey
-    _data.push(clone)
+    publicData.push(clone)
   })
-
-  // ws.send(JSON.stringify({ type: 'NEW_PEER', data: _data }))
 
   ;[...clients.keys()].forEach(client => {
-    client.send(JSON.stringify({ type: 'NEW_PEER', peer: id, data: _data }))
+    client.send(JSON.stringify({ type: 'NEW_PEER', peer: id, data: publicData }))
   })
-  // chain.addPeer(data)
-  // send back the new ID and the wallet details for the new client connection
 
   ws.on('message', async (messageAsString: string) => {
     const msg = JSON.parse(messageAsString)
@@ -42,7 +37,7 @@ wss.on('connection', async ws => {
     const { type, amount, to } = msg
     const client = clients.get(ws)
     console.log('CLIENT IS', client)
-    const { publicKey, privateKey, id } = data
+    const { publicKey, privateKey, id } = privateData
 
     // const transactions = chain.getAllTransactionsForWallet(publicKey)
     const tx = new Transaction(publicKey, to, amount, chain.transactionCount + 1)
@@ -79,9 +74,6 @@ wss.on('connection', async ws => {
         ws.send(JSON.stringify(chain.getBalanceOfAddress(publicKey)))
         break
 
-      // case 'TRANSACTIONS':
-      //   ws.send(JSON.stringify(transactions))
-      //   break
       case 'ADD_TRANSACTION':
         tx.signTransaction(ec.keyFromPrivate(privateKey))
         chain.addTransaction(tx)

@@ -197,16 +197,16 @@ function onMessage(evt) {
 
   if (data.type === "CONNECTED") {
     const id = document.getElementById("client-id");
-    id.innerHTML += data.data.id + "\n";
+    id.innerHTML += data.privateData.id + "\n";
 
     const public = document.getElementById("public-key");
-    public.innerHTML += data.data.publicKey + "\n";
+    public.innerHTML += data.privateData.publicKey + "\n";
 
     const private = document.getElementById("private-key");
-    private.innerHTML += data.data.privateKey + "\n";
+    private.innerHTML += data.privateData.privateKey + "\n";
 
     const balance = document.getElementById("balance");
-    balance.innerHTML = data.data.balance + "\n";
+    balance.innerHTML = data.privateData.balance + "\n";
   }
 
   if (data.type === "NEW_BALANCE") {
