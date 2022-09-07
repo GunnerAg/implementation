@@ -1,9 +1,9 @@
-import Block from './block.model'
-import Transaction from './transaction.model'
-import Blockchain from './blockchain.model'
+import Block from "./block";
+import Blockchain from "./blockchain";
+import Transaction from "./transaction";
 
 export {
   Block,
-  Transaction,
-  Blockchain
+  Blockchain,
+  Transaction
 }

@@ -1,6 +1,7 @@
-import { Block } from './block.interface'
-import { Blockchain, Peer } from './blockchain.interface'
-import { Transaction } from './transaction.interface'
-import { IMessage, IMessageData } from './web.socket.interface'
+import { Block, Transaction, Blockchain } from './blockchain.interfaces'
 
-export { Block, Blockchain, Transaction, IMessageData, IMessage, Peer }
+export {
+  Block as IBlock,
+  Transaction as ITransaction,
+  Blockchain as IBlockchain
+}
